@@ -1,0 +1,20 @@
+# Netlify detects Next.js and runs the OpenNext adapter.
+# Do not pin @netlify/plugin-nextjs; Netlify keeps that adapter current.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Card photos are forwarded to Gemini. Give the function time to answer.
+[functions]
+  timeout = 26
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=()"
