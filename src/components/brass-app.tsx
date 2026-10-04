@@ -136,7 +136,7 @@ export function BrassApp() {
   }
 
   async function readOnDevice(prepared: PreparedImage, message: string | null) {
-    const blob = await fetch(prepared.previewUrl).then((response) => response.blob());
+    const blob = prepared.ocrBlob ? prepared.ocrBlob : await fetch(prepared.previewUrl).then((response) => response.blob());
     const { recognizeCard } = await import("@/lib/ocr");
     const text = await recognizeCard(blob, (progress) => {
       setStage({ kind: "reading", prepared, message: progress });

@@ -79,6 +79,10 @@ export function defaultSettings(): Settings {
   return { engine: "auto", geminiKey: "" };
 }
 
+function latinTokens(value: string): string[] {
+  return value.split(/\s+/).filter((part) => /[A-Za-z]/.test(part));
+}
+
 export function splitPersonName(full: string): { firstName: string; lastName: string } {
   const clean = full.trim().replace(/\s+/g, " ");
   if (!clean) return { firstName: "", lastName: "" };
@@ -87,6 +91,12 @@ export function splitPersonName(full: string): { firstName: string; lastName: st
     return { firstName: rest ?? "", lastName: last ?? "" };
   }
   const parts = clean.split(" ");
+  const hasCjk = parts.some((part) => /[\u3400-\u9FFF]/.test(part));
+  const latin = latinTokens(clean);
+  if (hasCjk && latin.length > 0) {
+    if (latin.length === 1) return { firstName: latin[0] ?? "", lastName: "" };
+    return { firstName: latin.slice(0, -1).join(" "), lastName: latin.at(-1) ?? "" };
+  }
   if (parts.length === 1) return { firstName: parts[0] ?? "", lastName: "" };
   const lastName = parts.pop() ?? "";
   return { firstName: parts.join(" "), lastName };

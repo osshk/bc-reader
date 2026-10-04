@@ -22,7 +22,7 @@ Open the URL printed by Next.js. `npm test` checks the card parser and the vCard
 3. Correct anything that looks wrong.
 4. Press **Add to phone**. On a computer this downloads a `.vcf` file you can open in Contacts, Google Contacts, or Outlook. **Add everyone** does the same for the whole book.
 
-Without a Gemini key, Brass reads the card on the device with Tesseract. That path is private and less accurate. With a key, Gemini reads the photograph.
+Without a Gemini key, Brass reads the card on the device with Tesseract. That path is private. It sharpens the photo and reads English plus Traditional Chinese. With a key, Gemini reads the photograph.
 
 ## Gemini
 

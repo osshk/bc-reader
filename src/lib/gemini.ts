@@ -10,7 +10,8 @@ Rules:
 - label a phone mobile, work, home, fax, or other. Use mobile for cell or M, fax for fax, home for home, and work for office, direct, tel, or an unlabeled business number.
 - label an email work, personal, or other.
 - website is the company site, not a social profile. linkedin is the LinkedIn URL if one is printed.
-- Put the street on street, and city, region, postal code, and country in their own fields.
+- Put the street on street, and city, region, postal code, and country in their own fields. A phone number is never a street.
+- On bilingual cards, keep the original-script name in fullName and put only the Latin given name and surname in firstName and lastName. For Hong Kong, city is the area such as Kowloon and country is Hong Kong. Keep websites like .com.hk intact.
 - notes holds extra printed details that do not fit elsewhere, such as a tagline. Do not add commentary.
 - transcription is the plain text you can read, with line breaks preserved and no commentary.
 - confidence is high when the card is sharp and the fields are unambiguous, medium when layout makes a field uncertain, and low when the photo is blurry, cropped, or not a business card.`;

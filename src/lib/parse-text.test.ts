@@ -73,4 +73,77 @@ jose@example.com
     assert.equal(contact.confidence, "low");
     assert.equal(contact.phones.length, 0);
   });
+
+  it("reads a bilingual Hong Kong card", () => {
+    const contact = parseCardText(`CANDAS CHOW 周珮延
+Senior Marketing Manager
+Mobile - 9676 7716
+HOT TOYS LIMITED
+香港九龍觀塘鴻圖道57號南洋廣場22樓01-03A室
+Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong,
+Kowloon, Hong Kong.
+Tel (852)2836 3295 Direct (852)3951 3913 Fax (852)2783 9359
+Email candas.chow@hottoys.com.hk Website www.hottoys.com.hk`);
+
+    assert.equal(contact.fullName, "Candas Chow 周珮延");
+    assert.equal(contact.firstName, "Candas");
+    assert.equal(contact.lastName, "Chow");
+    assert.equal(contact.jobTitle, "Senior Marketing Manager");
+    assert.equal(contact.company, "Hot Toys Limited");
+    assert.deepEqual(
+      contact.phones.map((phone) => `${phone.label}:${phone.number}`),
+      ["mobile:9676 7716", "work:(852)2836 3295", "work:(852)3951 3913", "fax:(852)2783 9359"],
+    );
+    assert.equal(contact.emails[0]?.address, "candas.chow@hottoys.com.hk");
+    assert.equal(contact.website, "https://www.hottoys.com.hk");
+    assert.equal(contact.street, "Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong");
+    assert.equal(contact.city, "Kowloon");
+    assert.equal(contact.country, "Hong Kong");
+    assert.match(contact.notes, /香港/);
+    assert.equal(contact.confidence, "high");
+  });
+
+  it("reads the on-device transcript of that card", () => {
+    const contact = parseCardText(`~~ CANDAS CHOW 周 姵 延
+Senior Marketing Manager
+Mobile - 9676 7716 |
+HOT TOYS LIMITED.
+ERAANMBEANNS7RRH¥NB22#K01-03AK
+Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong,
+Kowloon, Hong Kong.
+Tel -(852)2836 3295 Direct - (852)3951 3913 Fax - (852)2783 9359
+Email - candas.chow@hottoys.com.hk Website - www.hottoys.com.hk`);
+
+    assert.equal(contact.fullName, "Candas Chow 周 姵 延");
+    assert.equal(contact.firstName, "Candas");
+    assert.equal(contact.lastName, "Chow");
+    assert.equal(contact.company, "Hot Toys Limited");
+    assert.equal(contact.phones[0]?.label, "mobile");
+    assert.equal(contact.phones[0]?.number, "9676 7716");
+    assert.equal(contact.phones[3]?.label, "fax");
+    assert.equal(contact.phones[3]?.number, "(852)2783 9359");
+    assert.equal(contact.website, "https://www.hottoys.com.hk");
+    assert.equal(contact.street, "Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong");
+    assert.equal(contact.city, "Kowloon");
+    assert.equal(contact.country, "Hong Kong");
+    assert.doesNotMatch(contact.street, /9676/);
+    assert.doesNotMatch(contact.notes, /ERAAN|HOT TOYS/i);
+  });
+
+  it("keeps a misread mobile number out of the street", () => {
+    const contact = parseCardText(`CANDAS CHOW / if &&
+Senior Marketing Manager
+9676 7716, pi 0 2m DRE en on na Ree Ln Be
+HOT TOYS LIMITED
+Kowloon, H¢`);
+
+    assert.equal(contact.fullName, "Candas Chow");
+    assert.equal(contact.company, "Hot Toys Limited");
+    assert.equal(contact.phones[0]?.number, "9676 7716");
+    assert.notEqual(contact.phones[0]?.label, "fax");
+    assert.equal(contact.street, "");
+    assert.equal(contact.city, "Kowloon");
+    assert.equal(contact.country, "Hong Kong");
+    assert.doesNotMatch(`${contact.street}\n${contact.company}`, /9676|if &&/);
+  });
 });
