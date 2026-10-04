@@ -52,7 +52,7 @@ export async function prepareImage(file: Blob): Promise<PreparedImage> {
   }
 
   try {
-    const main = await renderJpeg(bitmap, 1600, 0.86);
+    const main = await renderJpeg(bitmap, 1280, 0.8);
     const thumb = await renderJpeg(bitmap, 480, 0.72);
     const dataUrl = await blobToDataUrl(main);
     const comma = dataUrl.indexOf(",");

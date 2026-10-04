@@ -39,11 +39,11 @@ Anyone who can open a deployed site can spend a server key. For a personal tool,
 
 ## Deploy on Netlify
 
-Netlify’s Next.js runtime (OpenNext) picks this app up without a pinned adapter.
+`netlify.toml` overrides the site settings in the Netlify UI. The build is the same one Netlify uses for Next.js 16: `npm run build`, publish directory `.next`, Node 22 (also set in `.node-version` and `.nvmrc`). The Next.js runtime is applied automatically. This repo does not pin `@netlify/plugin-nextjs`.
 
-1. Push the repo and create a Netlify site from it.
-2. Build command: `npm run build`. Publish directory: `.next`. Node 22. These are already in `netlify.toml`.
-3. Add `GEMINI_API_KEY` under **Site configuration → Environment variables**, then redeploy.
-4. Open the site on your phone, read a card, and tap **Add to phone**.
+1. Import the repo as a new site. Leave the base directory empty. If an older site has a publish directory of `public` or `out`, clear it and redeploy so `.next` from `netlify.toml` is used.
+2. In **Project configuration → Build & deploy → Build plugins**, remove a pinned “Next.js runtime” / `@netlify/plugin-nextjs` entry if the build log says the adapter is outdated. A pinned copy opts out of the current runtime and breaks Next.js 16.
+3. Optional: add `GEMINI_API_KEY` under **Environment variables**, then redeploy. Do not use a `NEXT_PUBLIC_` name. The key is read when a card is scanned, not baked into the build.
+4. Open the site on a phone and tap **Add to phone**.
 
-The parse function timeout is 26 seconds so a Gemini read can finish.
+Netlify’s default function limit is 10 seconds. Card reads use `gemini-3.5-flash-lite` and give up at 8 seconds so the request returns before that cutoff. If Gemini is slow, Automatic mode reads the card in the browser instead. On-device reading does not call a Netlify function.

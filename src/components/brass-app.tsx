@@ -25,7 +25,6 @@ import {
   type Settings,
 } from "@/lib/contact";
 import { prepareImage, type PreparedImage } from "@/lib/image";
-import { recognizeCard } from "@/lib/ocr";
 import { parseCardText } from "@/lib/parse-text";
 import { SAMPLE_LABELS, drawSample, type SampleId } from "@/lib/samples";
 import { deliverVCard, deliveryMessage } from "@/lib/share";
@@ -138,6 +137,7 @@ export function BrassApp() {
 
   async function readOnDevice(prepared: PreparedImage, message: string | null) {
     const blob = await fetch(prepared.previewUrl).then((response) => response.blob());
+    const { recognizeCard } = await import("@/lib/ocr");
     const text = await recognizeCard(blob, (progress) => {
       setStage({ kind: "reading", prepared, message: progress });
     });
@@ -198,6 +198,10 @@ export function BrassApp() {
       } catch (error) {
         const status = error instanceof Error && "status" in error ? Number(error.status) : 0;
         const canFallback = settings.engine === "auto" && (status === 0 || status === 429 || status >= 500);
+        const fallbackNote =
+          status === 504
+            ? "Gemini took too long, so this card was read on your device. Check the fields."
+            : "Gemini was unavailable, so this card was read on your device. Check the fields.";
         if (!canFallback) {
           setStage({
             kind: "capture",
@@ -206,7 +210,7 @@ export function BrassApp() {
           });
           return;
         }
-        await readOnDevice(prepared, "Gemini was unavailable, so this card was read on your device. Check the fields.");
+        await readOnDevice(prepared, fallbackNote);
         return;
       }
     }

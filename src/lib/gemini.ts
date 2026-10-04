@@ -1,4 +1,4 @@
-export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
+export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 export const GEMINI_PROMPT = `You read a photograph of a business card and extract the person on it.
 

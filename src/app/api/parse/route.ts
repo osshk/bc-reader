@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 26;
 
 const MAX_BASE64_CHARS = 4_500_000;
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/gif"]);
@@ -76,10 +75,14 @@ export async function POST(request: Request) {
             responseSchema: GEMINI_SCHEMA,
           },
         }),
-        signal: AbortSignal.timeout(24_000),
+        signal: AbortSignal.timeout(8_000),
       },
     );
-  } catch {
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    if (name === "TimeoutError" || name === "AbortError") {
+      return failure(504, "timeout", "Gemini did not answer in time. Brass can read the card on this device instead.");
+    }
     return failure(502, "gemini_unreachable", "Gemini could not be reached. Try again in a moment.");
   }
 
@@ -92,8 +95,12 @@ export async function POST(request: Request) {
 
   if (!response.ok) {
     const status = payload.error?.status ?? "";
-    if (response.status === 400 || response.status === 401 || response.status === 403 || status === "INVALID_ARGUMENT") {
+    const detail = payload.error?.message ?? "";
+    if (response.status === 401 || response.status === 403 || /api key/i.test(detail)) {
       return failure(401, "rejected_key", "Gemini refused the key. Check it in Settings or in your Netlify environment.");
+    }
+    if (response.status === 400 || status === "INVALID_ARGUMENT") {
+      return failure(502, "gemini_error", "Gemini could not read this card.");
     }
     if (response.status === 404) {
       return failure(502, "unknown_model", `Gemini does not recognize the model “${model}”. Set GEMINI_MODEL to a current Flash model.`);
