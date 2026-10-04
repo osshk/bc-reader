@@ -44,7 +44,7 @@ function oneCard(input: ContactDraft): string {
   const lines = [
     "BEGIN:VCARD",
     "VERSION:3.0",
-    "PRODID:-//Brass//Business Card Scanner//EN",
+    "PRODID:-//BC Reader//Business Card Reader//EN",
     fold(`N;CHARSET=UTF-8:${escapeValue(contact.lastName)};${escapeValue(contact.firstName)};;;`),
     fold(`FN;CHARSET=UTF-8:${escapeValue(full)}`),
     field("NICKNAME;CHARSET=UTF-8", contact.chineseName),

@@ -109,7 +109,7 @@ export function ReviewForm({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={previewUrl}
-            alt="The card Brass just read"
+            alt="The card BC Reader just read"
             className="h-16 w-28 rounded-lg border border-border object-cover"
           />
         ) : null}

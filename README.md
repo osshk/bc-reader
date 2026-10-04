@@ -1,8 +1,8 @@
-# Brass
+# BC Reader
 
-Photograph a business card, check the fields, and file the person into the Contacts app on iPhone or Android.
+Business Card Reader. Photograph a business card, check the fields, and file the person into the Contacts app on iPhone or Android.
 
-Brass fills a vCard (name, title, company, phones, emails, website, LinkedIn, address, notes) and hands that file to the phone. iPhone opens a contact card. Android imports the vCard. Both ask you to confirm before anyone is saved. A browser cannot write the address book on its own.
+BC Reader fills a vCard (name, Chinese name, title, company, phones, emails, website, LinkedIn, address, notes) and hands that file to the phone. iPhone opens a contact card. Android imports the vCard. Both ask you to confirm before anyone is saved. A browser cannot write the address book on its own.
 
 The book of cards stays in this browser. Nothing is stored on a server unless you turn on Gemini, in which case the photo is sent to Google to be read and is not kept.
 
@@ -22,7 +22,7 @@ Open the URL printed by Next.js. `npm test` checks the card parser and the vCard
 3. Correct anything that looks wrong.
 4. Press **Add to phone**. On a computer this downloads a `.vcf` file you can open in Contacts, Google Contacts, or Outlook. **Add everyone** does the same for the whole book.
 
-Without a Gemini key, Brass reads the card on the device with Tesseract. That path is private. It sharpens the photo and reads English plus Traditional Chinese. With a key, Gemini reads the photograph.
+Without a Gemini key, BC Reader reads the card on the device with Tesseract. That path is private. It sharpens the photo and reads English plus Traditional Chinese. With a key, Gemini reads the photograph.
 
 ## Gemini
 

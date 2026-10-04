@@ -1,7 +1,7 @@
 {
-  "name": "Brass",
-  "short_name": "Brass",
-  "description": "Photograph a business card and file the person into your contacts.",
+  "name": "BC Reader",
+  "short_name": "BC Reader",
+  "description": "Business Card Reader. Photograph a card and file the person into your contacts.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f3efe4",

@@ -1,5 +1,5 @@
-import { BrassApp } from "@/components/brass-app";
+import { BcReaderApp } from "@/components/bc-reader-app";
 
 export default function Home() {
-  return <BrassApp />;
+  return <BcReaderApp />;
 }

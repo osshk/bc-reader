@@ -110,7 +110,7 @@ export function SettingsDialog({
             >
               Google AI Studio
             </a>
-            . It is sent only to this site, which forwards the photo to Gemini. Brass does not store the key on the
+            . It is sent only to this site, which forwards the photo to Gemini. BC Reader does not store the key on the
             server.
           </p>
         </div>

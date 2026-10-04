@@ -71,7 +71,7 @@ async function readWithGemini(prepared: PreparedImage, settings: Settings, serve
   return payload.contact;
 }
 
-export function BrassApp() {
+export function BcReaderApp() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const [book, setBook] = useState<SavedContact[]>([]);
@@ -298,7 +298,7 @@ export function BrassApp() {
     try {
       const result = await deliverVCard(
         toVCard(readyContacts),
-        readyContacts.length === 1 ? vcardFilename(readyContacts[0]!) : "brass-contacts.vcf",
+        readyContacts.length === 1 ? vcardFilename(readyContacts[0]!) : "bc-reader-contacts.vcf",
       );
       const message = deliveryMessage(result, readyContacts.length);
       if (!rememberReview) setNotice(message);
@@ -336,7 +336,12 @@ export function BrassApp() {
       <header className="mb-6 flex items-center justify-between gap-3">
         <a href="#read" className="group flex items-center gap-2">
           <span className="bg-primary size-3 rounded-sm" aria-hidden />
-          <span className="font-heading text-3xl italic tracking-tight">Brass</span>
+          <span className="grid leading-none">
+            <span className="font-heading text-2xl italic tracking-tight sm:text-3xl">BC Reader</span>
+            <span className="text-[0.65rem] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              Business Card Reader
+            </span>
+          </span>
         </a>
         <Button type="button" variant="outline" className="h-10" onClick={() => setSettingsOpen(true)}>
           <SettingsIcon />
@@ -353,7 +358,7 @@ export function BrassApp() {
                   Photograph a card. File the person.
                 </h1>
                 <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-                  Brass reads the type, fills the contact, and hands it to the Contacts app on iPhone and Android.
+                  BC Reader reads the type, fills the contact, and hands it to the Contacts app on iPhone and Android.
                 </p>
               </div>
 
@@ -532,7 +537,7 @@ export function BrassApp() {
           <DialogHeader>
             <DialogTitle>Remove {pendingDelete ? displayName(pendingDelete) || "this card" : "this card"}?</DialogTitle>
             <DialogDescription>
-              This drops them from Brass on this browser. It does not delete them from your phone.
+              This drops them from BC Reader on this browser. It does not delete them from your phone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

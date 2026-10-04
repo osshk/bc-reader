@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const name = error instanceof Error ? error.name : "";
     if (name === "TimeoutError" || name === "AbortError") {
-      return failure(504, "timeout", "Gemini did not answer in time. Brass can read the card on this device instead.");
+      return failure(504, "timeout", "Gemini did not answer in time. BC Reader can read the card on this device instead.");
     }
     return failure(502, "gemini_unreachable", "Gemini could not be reached. Try again in a moment.");
   }
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   try {
     payload = (await response.json()) as GeminiResponse;
   } catch {
-    return failure(502, "gemini_bad_response", "Gemini returned something Brass could not read.");
+    return failure(502, "gemini_bad_response", "Gemini returned something BC Reader could not read.");
   }
 
   if (!response.ok) {

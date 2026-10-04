@@ -14,14 +14,14 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Brass — business cards into contacts",
+  title: "BC Reader — Business Card Reader",
   description:
     "Photograph a business card, check the fields, and file the person into the Contacts app on iPhone or Android.",
-  applicationName: "Brass",
+  applicationName: "BC Reader",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Brass",
+    title: "BC Reader",
     statusBarStyle: "default",
   },
 };

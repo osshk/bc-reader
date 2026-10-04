@@ -99,7 +99,7 @@ export function ContactBook({
                     variant="outline"
                     size="icon"
                     className="size-10"
-                    aria-label={`Remove ${name} from Brass`}
+                    aria-label={`Remove ${name} from BC Reader`}
                     onClick={() => onDelete(contact)}
                   >
                     <Trash2 />
