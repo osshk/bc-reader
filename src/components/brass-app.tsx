@@ -17,6 +17,7 @@ import {
   displayName,
   findDuplicate,
   normalizeDraft,
+  pullChineseName,
   splitPersonName,
   vcardFilename,
   type ContactDraft,
@@ -232,9 +233,12 @@ export function BrassApp() {
       let draft = next;
       let partsTouched = current.partsTouched;
       if (source === "parts") partsTouched = true;
-      if (source === "fullName" && !partsTouched) {
-        const parts = splitPersonName(next.fullName);
-        draft = { ...next, firstName: parts.firstName, lastName: parts.lastName };
+      if (source === "fullName") {
+        const separated = pullChineseName(next.fullName, next.chineseName);
+        const parts = partsTouched
+          ? { firstName: next.firstName, lastName: next.lastName }
+          : splitPersonName(separated.fullName);
+        draft = { ...next, ...separated, ...parts };
       }
       return { ...current, draft, partsTouched, banner: null };
     });

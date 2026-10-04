@@ -6,6 +6,7 @@ import type { ContactDraft } from "./contact";
 function draft(overrides: Partial<ContactDraft> = {}): ContactDraft {
   return {
     fullName: "Maya Chen",
+    chineseName: "",
     firstName: "Maya",
     lastName: "Chen",
     jobTitle: "Product Design Director",
@@ -38,6 +39,7 @@ describe("toVCard", () => {
     assert.match(vcard, /\r\n /);
     assert.match(flat, /N;CHARSET=UTF-8:Chen;Maya;;;/);
     assert.match(flat, /FN;CHARSET=UTF-8:Maya Chen/);
+    assert.doesNotMatch(flat, /NICKNAME/);
     assert.match(flat, /ORG;CHARSET=UTF-8:Northwind Studio/);
     assert.match(flat, /TITLE;CHARSET=UTF-8:Product Design Director/);
     assert.match(flat, /TEL;TYPE=CELL,VOICE:\+1 415 555 0148/);
@@ -76,6 +78,8 @@ describe("toVCard", () => {
     assert.match(vcard, /ORG;CHARSET=UTF-8:Hale & Birch/);
     assert.doesNotMatch(vcard, /TEL;TYPE=WORK,VOICE:123/);
     assert.match(vcard, /TEL;TYPE=WORK,VOICE:\+44 20 7946 0991/);
+    assert.match(toVCard(draft({ chineseName: "周珮延" })), /NICKNAME;CHARSET=UTF-8:周珮延/);
+    assert.match(toVCard(draft({ chineseName: "周珮延" })), /FN;CHARSET=UTF-8:Maya Chen/);
     const julian = vcard.split("BEGIN:VCARD")[2] ?? "";
     assert.doesNotMatch(julian, /^ADR/m);
   });

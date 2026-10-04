@@ -20,6 +20,7 @@ export type Email = {
 
 export type ContactDraft = {
   fullName: string;
+  chineseName: string;
   firstName: string;
   lastName: string;
   jobTitle: string;
@@ -56,6 +57,7 @@ const EMAIL_RE = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 export function emptyDraft(): ContactDraft {
   return {
     fullName: "",
+    chineseName: "",
     firstName: "",
     lastName: "",
     jobTitle: "",
@@ -102,10 +104,30 @@ export function splitPersonName(full: string): { firstName: string; lastName: st
   return { firstName: parts.join(" "), lastName };
 }
 
-export function displayName(contact: Pick<ContactDraft, "fullName" | "firstName" | "lastName">): string {
+export function pullChineseName(fullName: string, chineseName = ""): { fullName: string; chineseName: string } {
+  const embedded = (fullName.match(/[\u3400-\u9FFF]+/g) ?? []).join("");
+  const latin = fullName.replace(/[\u3400-\u9FFF]/g, " ").replace(/\s+/g, " ").trim();
+  const compact = (value: string) => {
+    const trimmed = value.trim().replace(/\s+/g, " ");
+    if (!trimmed) return "";
+    if (/^[\u3400-\u9FFF\s]+$/.test(trimmed)) return trimmed.replace(/\s+/g, "");
+    return trimmed;
+  };
+  const current = compact(chineseName);
+  if (!embedded) return { fullName: latin, chineseName: current };
+  if (!current || current === embedded) return { fullName: latin, chineseName: embedded };
+  if (current.includes(embedded)) return { fullName: latin, chineseName: current };
+  return { fullName: latin, chineseName: `${current}${embedded}` };
+}
+
+export function displayName(
+  contact: Pick<ContactDraft, "fullName" | "firstName" | "lastName"> & { chineseName?: string },
+): string {
   const full = contact.fullName.trim();
   if (full) return full;
-  return [contact.firstName, contact.lastName].map((part) => part.trim()).filter(Boolean).join(" ");
+  const built = [contact.firstName, contact.lastName].map((part) => part.trim()).filter(Boolean).join(" ");
+  if (built) return built;
+  return contact.chineseName?.trim() ?? "";
 }
 
 export function normalizeUrl(value: string): string {
@@ -146,7 +168,9 @@ export function normalizeDraft(input: ContactDraft): ContactDraft {
     }))
     .filter((email) => EMAIL_RE.test(email.address));
 
-  let fullName = input.fullName.trim().replace(/\s+/g, " ");
+  const separated = pullChineseName(input.fullName, input.chineseName);
+  let fullName = separated.fullName;
+  const chineseName = separated.chineseName;
   let firstName = input.firstName.trim().replace(/\s+/g, " ");
   let lastName = input.lastName.trim().replace(/\s+/g, " ");
 
@@ -161,6 +185,7 @@ export function normalizeDraft(input: ContactDraft): ContactDraft {
 
   return {
     fullName,
+    chineseName,
     firstName,
     lastName,
     jobTitle: input.jobTitle.trim(),
@@ -199,6 +224,7 @@ export function draftFromUnknown(value: unknown, rawText = ""): ContactDraft {
 
   return normalizeDraft({
     fullName: text(record.fullName),
+    chineseName: text(record.chineseName),
     firstName: text(record.firstName),
     lastName: text(record.lastName),
     jobTitle: text(record.jobTitle),

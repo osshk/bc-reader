@@ -5,13 +5,14 @@ export const GEMINI_PROMPT = `You read a photograph of a business card and extra
 Rules:
 - Copy only what is printed. Never invent a phone number, email, title, or company.
 - If a field is not on the card, return an empty string. If there are no phones or emails, return an empty array.
-- fullName is the person's name as printed. Split it into firstName and lastName. Put additional given names in firstName and the surname in lastName.
+- fullName is the Latin name only. Split it into firstName and lastName. Put additional given names in firstName and the surname in lastName.
+- chineseName is the Chinese personal name printed on the card, with the characters together and no Latin letters. Leave it empty when the card has no Chinese name.
 - Keep phone numbers as printed, including extensions.
 - label a phone mobile, work, home, fax, or other. Use mobile for cell or M, fax for fax, home for home, and work for office, direct, tel, or an unlabeled business number.
 - label an email work, personal, or other.
 - website is the company site, not a social profile. linkedin is the LinkedIn URL if one is printed.
 - Put the street on street, and city, region, postal code, and country in their own fields. A phone number is never a street.
-- On bilingual cards, keep the original-script name in fullName and put only the Latin given name and surname in firstName and lastName. For Hong Kong, city is the area such as Kowloon and country is Hong Kong. Keep websites like .com.hk intact.
+- For Hong Kong, city is the area such as Kowloon and country is Hong Kong. Keep websites like .com.hk intact. Do not put the Chinese name in notes.
 - notes holds extra printed details that do not fit elsewhere, such as a tagline. Do not add commentary.
 - transcription is the plain text you can read, with line breaks preserved and no commentary.
 - confidence is high when the card is sharp and the fields are unambiguous, medium when layout makes a field uncertain, and low when the photo is blurry, cropped, or not a business card.`;
@@ -22,6 +23,7 @@ export const GEMINI_SCHEMA = {
   type: "OBJECT",
   properties: {
     fullName: STRING,
+    chineseName: STRING,
     firstName: STRING,
     lastName: STRING,
     jobTitle: STRING,
@@ -61,6 +63,7 @@ export const GEMINI_SCHEMA = {
   },
   required: [
     "fullName",
+    "chineseName",
     "firstName",
     "lastName",
     "jobTitle",

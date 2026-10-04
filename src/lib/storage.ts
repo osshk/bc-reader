@@ -1,6 +1,7 @@
 import {
   defaultSettings,
   emptyDraft,
+  pullChineseName,
   type ContactDraft,
   type EngineChoice,
   type ReadEngine,
@@ -22,9 +23,15 @@ function isChoice(value: unknown): value is EngineChoice {
 function asDraft(value: unknown): ContactDraft {
   const record = value && typeof value === "object" ? (value as Partial<ContactDraft>) : {};
   const base = emptyDraft();
+  const separated = pullChineseName(
+    typeof record.fullName === "string" ? record.fullName : "",
+    typeof record.chineseName === "string" ? record.chineseName : "",
+  );
   return {
     ...base,
     ...record,
+    fullName: separated.fullName,
+    chineseName: separated.chineseName,
     phones: Array.isArray(record.phones) ? record.phones : [],
     emails: Array.isArray(record.emails) ? record.emails : [],
   };

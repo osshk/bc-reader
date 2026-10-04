@@ -47,6 +47,7 @@ function oneCard(input: ContactDraft): string {
     "PRODID:-//Brass//Business Card Scanner//EN",
     fold(`N;CHARSET=UTF-8:${escapeValue(contact.lastName)};${escapeValue(contact.firstName)};;;`),
     fold(`FN;CHARSET=UTF-8:${escapeValue(full)}`),
+    field("NICKNAME;CHARSET=UTF-8", contact.chineseName),
     contact.company ? fold(`ORG;CHARSET=UTF-8:${escapeValue(contact.company)}`) : null,
     field("TITLE;CHARSET=UTF-8", contact.jobTitle),
     ...contact.phones.map((phone) => fold(`TEL;TYPE=${TEL_TYPE[phone.label]}:${escapeValue(phone.number)}`)),

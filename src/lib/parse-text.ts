@@ -185,6 +185,11 @@ function isGarbage(line: string): boolean {
   const symbols = (line.match(/[^A-Za-z0-9\s.,'’&()/:-]/g) ?? []).length;
   if (letters >= 8 && vowels / letters < 0.22 && !STRONG_STREET_RE.test(line) && !COMPANY_RE.test(line)) return true;
   if (symbols >= 2 && letters > 0 && vowels / Math.max(letters, 1) < 0.28 && !STRONG_STREET_RE.test(line)) return true;
+  const tokens = line.split(/\s+/).filter(Boolean);
+  const mixed = tokens.filter((token) => /[A-Za-z]/.test(token) && /\d/.test(token));
+  if (mixed.length > 0 && mixed.length * 2 >= tokens.length && !STRONG_STREET_RE.test(line) && !COMPANY_RE.test(line)) {
+    return true;
+  }
   return false;
 }
 
@@ -283,7 +288,7 @@ export function parseQuality(raw: string): number {
   const draft = parseCardText(raw);
   let score = 0;
   if (draft.fullName) score += 5;
-  if (/[A-Za-z]/.test(draft.fullName) && /[\u3400-\u9FFF]/.test(draft.fullName)) score += 2;
+  if (draft.chineseName) score += 2;
   if (draft.jobTitle) score += 2;
   if (draft.company) score += 4;
   if (draft.street) score += 4;
@@ -373,6 +378,7 @@ export function parseCardText(raw: string): ContactDraft {
 
   return normalizeDraft({
     fullName: nameLine,
+    chineseName: "",
     firstName: parts.firstName,
     lastName: parts.lastName,
     jobTitle,

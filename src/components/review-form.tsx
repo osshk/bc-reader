@@ -163,6 +163,17 @@ export function ReviewForm({
           </Field>
         </div>
         <p className="-mt-2 text-xs text-muted-foreground">First and last are what the contacts app files.</p>
+        <Field id="chinese-name" label="Chinese name">
+          <Input
+            id="chinese-name"
+            value={draft.chineseName}
+            autoComplete="off"
+            lang="zh-Hant"
+            className="h-12 text-lg md:text-lg"
+            onChange={(event) => patch({ chineseName: event.target.value })}
+          />
+        </Field>
+        <p className="-mt-2 text-xs text-muted-foreground">Saved on the phone as the nickname, beside the English name.</p>
         <Field id="job-title" label="Title">
           <Input
             id="job-title"

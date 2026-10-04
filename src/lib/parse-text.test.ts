@@ -85,7 +85,8 @@ Kowloon, Hong Kong.
 Tel (852)2836 3295 Direct (852)3951 3913 Fax (852)2783 9359
 Email candas.chow@hottoys.com.hk Website www.hottoys.com.hk`);
 
-    assert.equal(contact.fullName, "Candas Chow 周珮延");
+    assert.equal(contact.fullName, "Candas Chow");
+    assert.equal(contact.chineseName, "周珮延");
     assert.equal(contact.firstName, "Candas");
     assert.equal(contact.lastName, "Chow");
     assert.equal(contact.jobTitle, "Senior Marketing Manager");
@@ -114,7 +115,8 @@ Kowloon, Hong Kong.
 Tel -(852)2836 3295 Direct - (852)3951 3913 Fax - (852)2783 9359
 Email - candas.chow@hottoys.com.hk Website - www.hottoys.com.hk`);
 
-    assert.equal(contact.fullName, "Candas Chow 周 姵 延");
+    assert.equal(contact.fullName, "Candas Chow");
+    assert.equal(contact.chineseName, "周姵延");
     assert.equal(contact.firstName, "Candas");
     assert.equal(contact.lastName, "Chow");
     assert.equal(contact.company, "Hot Toys Limited");
@@ -138,6 +140,7 @@ HOT TOYS LIMITED
 Kowloon, H¢`);
 
     assert.equal(contact.fullName, "Candas Chow");
+    assert.equal(contact.chineseName, "");
     assert.equal(contact.company, "Hot Toys Limited");
     assert.equal(contact.phones[0]?.number, "9676 7716");
     assert.notEqual(contact.phones[0]?.label, "fax");
@@ -145,5 +148,18 @@ Kowloon, H¢`);
     assert.equal(contact.city, "Kowloon");
     assert.equal(contact.country, "Hong Kong");
     assert.doesNotMatch(`${contact.street}\n${contact.company}`, /9676|if &&/);
+  });
+
+  it("keeps a failed Chinese address line out of notes", () => {
+    const contact = parseCardText(`CANDAS CHOW 周珮延
+HOT TOYS LIMITED
+EENEEEHEEREBS7 RAE XEIFE22M01-03AE
+Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong
+Kowloon, Hong Kong.`);
+
+    assert.equal(contact.fullName, "Candas Chow");
+    assert.equal(contact.chineseName, "周珮延");
+    assert.equal(contact.street, "Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong");
+    assert.equal(contact.notes, "");
   });
 });

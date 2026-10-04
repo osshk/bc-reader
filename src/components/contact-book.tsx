@@ -79,6 +79,9 @@ export function ContactBook({
                   )}
                   <span className="min-w-0">
                     <span className="block truncate text-base font-medium">{name}</span>
+                    {contact.chineseName && contact.chineseName !== name ? (
+                      <span className="mt-0.5 block truncate text-sm text-muted-foreground">{contact.chineseName}</span>
+                    ) : null}
                     {detail ? <span className="mt-0.5 block truncate text-sm text-muted-foreground">{detail}</span> : null}
                     {reach ? <span className="mt-0.5 block truncate text-sm">{reach}</span> : null}
                     <span className="mt-1 block text-xs tracking-wide text-primary uppercase">
