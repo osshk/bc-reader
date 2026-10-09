@@ -3,6 +3,7 @@
 import { ContactBook } from "@/components/contact-book";
 import { ReviewForm } from "@/components/review-form";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { InstallButton } from "@/components/install-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -343,10 +344,13 @@ export function BcReaderApp() {
             </span>
           </span>
         </a>
-        <Button type="button" variant="outline" className="h-10" onClick={() => setSettingsOpen(true)}>
-          <SettingsIcon />
-          Settings
-        </Button>
+        <div className="flex items-center gap-2">
+          <InstallButton />
+          <Button type="button" variant="outline" className="h-10" onClick={() => setSettingsOpen(true)}>
+            <SettingsIcon />
+            Settings
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
