@@ -21,7 +21,13 @@ function isIos() {
   return /iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
 }
 
+function iosOtherBrowser() {
+  return /CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(navigator.userAgent);
+}
+
 export function InstallButton() {
+  const [other, setOther] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [prompt, setPrompt] = useState<PromptEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [installed, setInstalled] = useState(true);
@@ -30,6 +36,7 @@ export function InstallButton() {
   useEffect(() => {
     setInstalled(isInstalled());
     setIos(isIos());
+    setOther(isIos() && iosOtherBrowser());
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setPrompt(e as PromptEvent);
@@ -63,6 +70,20 @@ export function InstallButton() {
     setHint((v) => !v);
   };
 
+  const openInSafari = () => {
+    // iOS 17+: x-safari-https opens the page in Safari. Undocumented by Apple.
+    window.location.href = "x-safari-" + window.location.href;
+    window.setTimeout(() => setCopied(false), 0);
+  };
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.origin + "/");
+      setCopied(true);
+    } catch {
+      window.prompt("Copy this link, then open Safari and paste it:", window.location.origin + "/");
+    }
+  };
+
   return (
     <div className="relative">
       <Button type="button" className="h-10" onClick={onClick} data-testid="install-button">
@@ -70,8 +91,29 @@ export function InstallButton() {
         Install
       </Button>
       {hint && (
-        <div className="absolute right-0 top-12 z-50 w-64 rounded-lg border bg-background p-3 text-sm shadow-lg">
-          Tap the Share button in Safari, then choose Add to Home Screen.
+        <div className="absolute right-0 top-12 z-50 w-72 rounded-lg border bg-background p-3 text-sm shadow-lg" data-testid="install-hint">
+          {other ? (
+            <div className="space-y-2">
+              <p className="font-medium">Install works best in Safari.</p>
+              <Button type="button" className="h-10 w-full" onClick={openInSafari} data-testid="open-safari">
+                Open in Safari
+              </Button>
+              <Button type="button" variant="outline" className="h-10 w-full" onClick={copyLink}>
+                {copied ? "Link copied. Paste it in Safari." : "Copy link for Safari"}
+              </Button>
+            </div>
+          ) : (
+            <ol className="list-decimal space-y-1 pl-4">
+              <li>Tap the Share button (square with an up arrow) at the bottom of Safari.</li>
+              <li>Scroll down and tap Add to Home Screen.</li>
+              <li>Tap Add.</li>
+            </ol>
+          )}
+        </div>
+      )}
+      {hint && !other && (
+        <div className="pointer-events-none fixed bottom-2 left-1/2 z-50 -translate-x-1/2 animate-bounce text-3xl" aria-hidden>
+          ↓
         </div>
       )}
     </div>

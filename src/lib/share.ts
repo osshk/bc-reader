@@ -6,7 +6,21 @@ function isIOS(): boolean {
 
 export type Delivery = "shared" | "opened" | "downloaded";
 
+function toBase64Url(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 export async function deliverVCard(vcf: string, filename: string): Promise<Delivery> {
+  // iPhone: skip the share sheet (Contacts is not offered there). Open the card
+  // from the server so iOS shows its own contact screen.
+  if (isIOS()) {
+    const name = filename.replace(/\.vcf$/i, "");
+    window.location.assign(`/api/vcard?n=${encodeURIComponent(name)}&d=${toBase64Url(vcf)}`);
+    return "opened";
+  }
   const file = new File([vcf], filename, { type: "text/vcard" });
   if (navigator.canShare?.({ files: [file] })) {
     try {
@@ -19,11 +33,6 @@ export async function deliverVCard(vcf: string, filename: string): Promise<Deliv
 
   const blob = new Blob([vcf], { type: "text/vcard;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  if (isIOS()) {
-    window.location.assign(url);
-    return "opened";
-  }
-
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
@@ -41,7 +50,7 @@ export function deliveryMessage(result: Delivery, count: number): string {
     return `${people} went to the share sheet. Choose Contacts to finish filing. Your phone asks before anyone is saved.`;
   }
   if (result === "opened") {
-    return "Your iPhone should show the contact card. Tap Add Contact. Nothing is saved until you confirm.";
+    return "Your iPhone should show the contact card. Tap Create New Contact. In Chrome, tap Open in Contacts first. Nothing is saved until you confirm.";
   }
   if (count > 1) {
     return "Downloaded one card file with everyone. Open it to import into Contacts, Google Contacts, or Outlook. On a phone, this button uses the share sheet instead.";
