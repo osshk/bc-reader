@@ -8,6 +8,51 @@ export const dynamic = "force-dynamic";
 const MAX_BASE64_CHARS = 4_500_000;
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/gif"]);
 
+// The site is open to anyone with the link and the shared Gemini key is paid for, so
+// caps sit in front of the shared key only. A visitor using their own key is never counted.
+const WINDOW_MS = 10 * 60_000;
+const PER_IP_LIMIT = 40;
+const DAY_MS = 24 * 60 * 60_000;
+const DAILY_LIMIT = 1500;
+
+type Bucket = { count: number; resetAt: number };
+const keeper = globalThis as unknown as {
+  __bcReaderBuckets?: Map<string, Bucket>;
+  __bcReaderDay?: { count: number; since: number };
+};
+const buckets: Map<string, Bucket> = (keeper.__bcReaderBuckets ??= new Map());
+const day = (keeper.__bcReaderDay ??= { count: 0, since: Date.now() });
+
+function clientIp(request: Request): string {
+  const direct = request.headers.get("cf-connecting-ip")?.trim();
+  if (direct) return direct;
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || "unknown";
+}
+
+/** 0 when the read may go ahead, otherwise seconds until it may. */
+function checkQuota(ip: string): number {
+  const now = Date.now();
+  if (now - day.since > DAY_MS) {
+    day.since = now;
+    day.count = 0;
+  }
+  if (day.count >= DAILY_LIMIT) return Math.ceil((day.since + DAY_MS - now) / 1000);
+  if (buckets.size > 5_000) {
+    for (const [key, value] of buckets) if (value.resetAt <= now) buckets.delete(key);
+  }
+  const bucket = buckets.get(ip) ?? { count: 0, resetAt: now + WINDOW_MS };
+  if (bucket.resetAt <= now) {
+    bucket.count = 0;
+    bucket.resetAt = now + WINDOW_MS;
+  }
+  if (bucket.count >= PER_IP_LIMIT) return Math.ceil((bucket.resetAt - now) / 1000);
+  bucket.count += 1;
+  day.count += 1;
+  buckets.set(ip, bucket);
+  return 0;
+}
+
 type GeminiResponse = {
   candidates?: Array<{
     content?: { parts?: Array<{ text?: string }> };
@@ -30,6 +75,17 @@ export async function POST(request: Request) {
   }
   if (headerKey && !serverKey && (headerKey.length < 20 || headerKey.length > 200)) {
     return failure(400, "bad_key", "That Gemini key does not look valid.");
+  }
+
+  if (serverKey && !headerKey) {
+    const wait = checkQuota(clientIp(request));
+    if (wait > 0) {
+      const minutes = Math.max(1, Math.ceil(wait / 60));
+      return NextResponse.json(
+        { error: "rate_limited", message: `Too many cards read from this device just now. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}, or add your own Gemini key in Settings.` },
+        { status: 429, headers: { "Retry-After": String(wait) } },
+      );
+    }
   }
 
   let body: unknown;
