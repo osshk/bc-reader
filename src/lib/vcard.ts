@@ -50,7 +50,10 @@ function oneCard(input: ContactDraft): string {
     field("NICKNAME;CHARSET=UTF-8", contact.chineseName),
     contact.company ? fold(`ORG;CHARSET=UTF-8:${escapeValue(contact.company)}`) : null,
     field("TITLE;CHARSET=UTF-8", contact.jobTitle),
-    ...contact.phones.map((phone) => fold(`TEL;TYPE=${TEL_TYPE[phone.label]}:${escapeValue(phone.number)}`)),
+    // TEL is not a text value: keep "+" and the comma pause unescaped so both phones dial it.
+    ...contact.phones.map((phone) =>
+      fold(`TEL;TYPE=${TEL_TYPE[phone.label]}:${phone.number.replace(/[\r\n;]+/g, " ").trim()}`),
+    ),
     ...contact.emails.map((email) => fold(`EMAIL;TYPE=${EMAIL_TYPE[email.label]}:${escapeValue(email.address)}`)),
     field("URL", contact.website),
     contact.linkedin ? fold(`X-SOCIALPROFILE;TYPE=linkedin:${escapeValue(contact.linkedin)}`) : null,

@@ -93,7 +93,7 @@ Email candas.chow@hottoys.com.hk Website www.hottoys.com.hk`);
     assert.equal(contact.company, "Hot Toys Limited");
     assert.deepEqual(
       contact.phones.map((phone) => `${phone.label}:${phone.number}`),
-      ["mobile:9676 7716", "work:(852)2836 3295", "work:(852)3951 3913", "fax:(852)2783 9359"],
+      ["mobile:+852 9676 7716", "work:+852 2836 3295", "work:+852 3951 3913", "fax:+852 2783 9359"],
     );
     assert.equal(contact.emails[0]?.address, "candas.chow@hottoys.com.hk");
     assert.equal(contact.website, "https://www.hottoys.com.hk");
@@ -121,9 +121,9 @@ Email - candas.chow@hottoys.com.hk Website - www.hottoys.com.hk`);
     assert.equal(contact.lastName, "Chow");
     assert.equal(contact.company, "Hot Toys Limited");
     assert.equal(contact.phones[0]?.label, "mobile");
-    assert.equal(contact.phones[0]?.number, "9676 7716");
+    assert.equal(contact.phones[0]?.number, "+852 9676 7716");
     assert.equal(contact.phones[3]?.label, "fax");
-    assert.equal(contact.phones[3]?.number, "(852)2783 9359");
+    assert.equal(contact.phones[3]?.number, "+852 2783 9359");
     assert.equal(contact.website, "https://www.hottoys.com.hk");
     assert.equal(contact.street, "Unit 01-03A, 22/F., Nanyang Plaza, 57 Hung To Road, Kwun Tong");
     assert.equal(contact.city, "Kowloon");
@@ -142,7 +142,7 @@ Kowloon, H¢`);
     assert.equal(contact.fullName, "Candas Chow");
     assert.equal(contact.chineseName, "");
     assert.equal(contact.company, "Hot Toys Limited");
-    assert.equal(contact.phones[0]?.number, "9676 7716");
+    assert.equal(contact.phones[0]?.number, "+852 9676 7716");
     assert.notEqual(contact.phones[0]?.label, "fax");
     assert.equal(contact.street, "");
     assert.equal(contact.city, "Kowloon");

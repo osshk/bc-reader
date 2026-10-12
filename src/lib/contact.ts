@@ -1,3 +1,5 @@
+import { countryFromText, formatPhone } from "@/lib/phone";
+
 export const PHONE_LABELS = ["mobile", "work", "home", "fax", "other"] as const;
 export type PhoneLabel = (typeof PHONE_LABELS)[number];
 
@@ -154,10 +156,12 @@ function text(value: unknown): string {
 }
 
 export function normalizeDraft(input: ContactDraft): ContactDraft {
+  // Numbers without a country code are read as Hong Kong unless the card's address says otherwise.
+  const home = countryFromText(input.country, input.city, input.region) ?? "HK";
   const phones = input.phones
     .map((phone) => ({
       label: asPhoneLabel(phone.label),
-      number: phone.number.replace(/\s+/g, " ").trim(),
+      number: formatPhone(phone.number, home),
     }))
     .filter((phone) => phone.number.replace(/\D/g, "").length >= 7);
 
