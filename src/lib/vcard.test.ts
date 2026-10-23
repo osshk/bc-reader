@@ -83,4 +83,32 @@ describe("toVCard", () => {
     const julian = vcard.split("BEGIN:VCARD")[2] ?? "";
     assert.doesNotMatch(julian, /^ADR/m);
   });
+
+  it("preserves bilingual organization and title as separate fields", () => {
+    const company = "One Small Step 一小步; Education, Ltd. \\ Asia";
+    const title = "Education Director 教育總監";
+    const flat = unfold(toVCard(draft({ company, jobTitle: title })));
+    assert.ok(flat.includes("ORG;CHARSET=UTF-8:One Small Step 一小步\\; Education\\, Ltd. \\\\ Asia\r\n"));
+    assert.ok(flat.includes(`TITLE;CHARSET=UTF-8:${title}\r\n`));
+  });
+
+  it("folds by UTF-8 bytes without corrupting Chinese or supplementary characters", () => {
+    const companies = [
+      "環球創意教育科技發展集團有限公司".repeat(5),
+      "A".repeat(56) + "🌏 Education; Hong Kong",
+      "A".repeat(55) + "𠮷野家香港有限公司",
+    ];
+    for (const company of companies) {
+      const vcard = toVCard(draft({ company }));
+      const decoded = new TextDecoder("utf-8", { fatal: true }).decode(new TextEncoder().encode(vcard));
+      const flat = unfold(decoded);
+      const escaped = company.replace(/;/g, "\\;");
+      assert.ok(flat.includes(`ORG;CHARSET=UTF-8:${escaped}\r\n`));
+      assert.ok(!flat.includes("\uFFFD"));
+      for (const physical of decoded.split("\r\n")) {
+        assert.ok(Buffer.byteLength(physical, "utf8") <= 75, `Line exceeds 75 bytes: ${physical}`);
+      }
+    }
+  });
+
 });

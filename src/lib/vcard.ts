@@ -23,14 +23,24 @@ function escapeValue(value: string): string {
 }
 
 function fold(line: string): string {
-  if (line.length <= 75) return line;
-  let output = line.slice(0, 75);
-  let index = 75;
-  while (index < line.length) {
-    output += `\r\n ${line.slice(index, index + 74)}`;
-    index += 74;
+  // Count UTF-8 bytes and iterate complete code points: slicing UTF-16 strings
+  // can split surrogate pairs and permanently replace company/name characters.
+  const encoder = new TextEncoder();
+  const lines: string[] = [];
+  let current = "";
+  let bytes = 0;
+  for (const character of line) {
+    const length = encoder.encode(character).length;
+    if (bytes + length > 75) {
+      lines.push(current);
+      current = " ";
+      bytes = 1;
+    }
+    current += character;
+    bytes += length;
   }
-  return output;
+  lines.push(current);
+  return lines.join("\r\n");
 }
 
 function field(name: string, value: string): string | null {
