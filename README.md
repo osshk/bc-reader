@@ -2,6 +2,8 @@
 
 Business Card Reader. Photograph a business card, check the fields, and file the person into the Contacts app on iPhone or Android.
 
+Live app: [bc.oss-agent.com](https://bc.oss-agent.com). Production runs on the `oss-agent` server through Cloudflare Tunnel, not Netlify.
+
 BC Reader fills a vCard (name, Chinese name, title, company, phones, emails, website, LinkedIn, address, notes) and hands that file to the phone. iPhone opens a contact card. Android imports the vCard. Both ask you to confirm before anyone is saved. A browser cannot write the address book on its own.
 
 The book of cards stays in this browser. Nothing is stored on a server unless you turn on Gemini, in which case the photo is sent to Google to be read and is not kept.
@@ -45,7 +47,15 @@ Optional: `GEMINI_MODEL` (default `gemini-3.5-flash`). `gemini-3.8-flash` is str
 
 Anyone who can open a deployed site can spend a server key. For a personal tool, paste the key in Settings, or turn on a password in Netlify.
 
-## Deploy on Netlify
+## Current production deployment
+
+The app runs as the `ops` user's `oss-bc-reader.service` on the `oss-agent` server, listening on `127.0.0.1:3004`. Cloudflare Tunnel serves it at **https://bc.oss-agent.com**. Merging to GitHub does not deploy it automatically.
+
+The source checkout is `/home/ops/bc-reader`; the runtime environment is `/home/ops/bc-reader/.env.local`. Never print or overwrite that environment file. Build new releases as detached Git worktrees under `/home/ops/bc-reader-releases/<commit>` with the locked dependencies and a symlink to the existing environment file. Run `npm test` and `NEXT_TELEMETRY_DISABLED=1 npm run build -- --webpack` before switching the service.
+
+The systemd user drop-in `oss-bc-reader.service.d/release.conf` selects the release through `WorkingDirectory` and `ExecStart`. After changing it, run `systemctl --user daemon-reload` and restart only `oss-bc-reader`. Check `/`, `/api/config`, and the batch vCard POST through the public domain. Keep the previous release for rollback; restoring the prior drop-in (or removing it to return to the original checkout) and restarting restores that release.
+
+## Optional Netlify deployment
 
 `netlify.toml` overrides the site settings in the Netlify UI. The build is the same one Netlify uses for Next.js 16: `npm run build`, publish directory `.next`, Node 22 (also set in `.node-version` and `.nvmrc`). The Next.js runtime is applied automatically. This repo does not pin `@netlify/plugin-nextjs`.
 
