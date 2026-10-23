@@ -27,7 +27,8 @@ import {
   type Settings,
 } from "@/lib/contact";
 import { prepareImage, type PreparedImage } from "@/lib/image";
-import { parseCardText } from "@/lib/parse-text";
+import { readCard } from "@/lib/read-card";
+import { BatchReader } from "@/components/batch-reader";
 import { SAMPLE_LABELS, drawSample, type SampleId } from "@/lib/samples";
 import { deliverVCard, deliveryMessage } from "@/lib/share";
 import { loadBook, loadSettings, saveBook, saveSettings } from "@/lib/storage";
@@ -50,29 +51,8 @@ type Stage =
       partsTouched: boolean;
     };
 
-async function readWithGemini(prepared: PreparedImage, settings: Settings, serverGemini: boolean) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (!serverGemini && settings.geminiKey.trim()) headers["x-gemini-key"] = settings.geminiKey.trim();
-  const response = await fetch("/api/parse", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ imageBase64: prepared.base64, mimeType: prepared.mimeType }),
-  });
-  const payload = (await response.json().catch(() => ({}))) as {
-    error?: string;
-    message?: string;
-    contact?: ContactDraft;
-  };
-  if (!response.ok) {
-    const error = new Error(payload.message || "The card could not be read.") as Error & { status?: number };
-    error.status = response.status;
-    throw error;
-  }
-  if (!payload.contact) throw new Error("Gemini returned an empty contact.");
-  return payload.contact;
-}
-
 export function BcReaderApp() {
+  const [batchFiles, setBatchFiles] = useState<File[] | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const [book, setBook] = useState<SavedContact[]>([]);
@@ -111,6 +91,13 @@ export function BcReaderApp() {
     if (prepared?.previewUrl.startsWith("blob:")) URL.revokeObjectURL(prepared.previewUrl);
   }
 
+  function takeFiles(files: FileList | File[]) {
+    if (stage.kind === "reading") return;
+    const photos = Array.from(files);
+    if (photos.length > 1) setBatchFiles(photos);
+    else void takeFile(photos[0] ?? null);
+  }
+
   async function takeFile(file: File | null) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -137,94 +124,14 @@ export function BcReaderApp() {
     }
   }
 
-  async function readOnDevice(prepared: PreparedImage, message: string | null) {
-    const blob = prepared.ocrBlob ? prepared.ocrBlob : await fetch(prepared.previewUrl).then((response) => response.blob());
-    const { recognizeCard } = await import("@/lib/ocr");
-    const text = await recognizeCard(blob, (progress) => {
-      setStage({ kind: "reading", prepared, message: progress });
-    });
-    const draft = parseCardText(text);
-    const empty = !displayName(draft) && draft.phones.length === 0 && draft.emails.length === 0;
-    setStage({
-      kind: "review",
-      prepared,
-      draft,
-      engine: "device",
-      savedId: null,
-      partsTouched: false,
-      banner: empty
-        ? "Nothing readable came back. Type the contact, or try a sharper photo."
-        : message,
-    });
-  }
-
   async function readPrepared(prepared: PreparedImage) {
-    if (!prepared.base64) {
-      setStage({
-        kind: "capture",
-        prepared,
-        error: "This saved card has no photo to read again. Edit the fields instead.",
-      });
-      return;
-    }
-    const wantsDevice = settings.engine === "device";
-    const hasGemini = server.gemini || settings.geminiKey.trim().length > 0;
-    if (settings.engine === "gemini" && !hasGemini) {
-      setStage({
-        kind: "capture",
-        prepared,
-        error: "Add a Gemini API key in Settings, or switch the reader to this device.",
-      });
-      return;
-    }
-
-    setStage({
-      kind: "reading",
-      prepared,
-      message: wantsDevice || !hasGemini ? "Reading the type on this device…" : "Sending the photo to Gemini…",
-    });
-
-    if (!wantsDevice && hasGemini) {
-      try {
-        const draft = await readWithGemini(prepared, settings, server.gemini);
-        setStage({
-          kind: "review",
-          prepared,
-          draft,
-          engine: "gemini",
-          savedId: null,
-          banner: null,
-          partsTouched: false,
-        });
-        return;
-      } catch (error) {
-        const status = error instanceof Error && "status" in error ? Number(error.status) : 0;
-        const canFallback = settings.engine === "auto" && (status === 0 || status === 429 || status >= 500);
-        const fallbackNote =
-          status === 504
-            ? "Gemini took too long, so this card was read on your device. Check the fields."
-            : "Gemini was unavailable, so this card was read on your device. Check the fields.";
-        if (!canFallback) {
-          setStage({
-            kind: "capture",
-            prepared,
-            error: error instanceof Error ? error.message : "The card could not be read.",
-          });
-          return;
-        }
-        await readOnDevice(prepared, fallbackNote);
-        return;
-      }
-    }
-
     try {
-      await readOnDevice(prepared, null);
-    } catch (error) {
-      setStage({
-        kind: "capture",
-        prepared,
-        error: error instanceof Error ? error.message : "The on-device reader could not finish.",
+      const result = await readCard(prepared, settings, server.gemini, (message) => {
+        setStage({ kind: "reading", prepared, message });
       });
+      setStage({ kind: "review", prepared, ...result, savedId: null, partsTouched: false });
+    } catch (error) {
+      setStage({ kind: "capture", prepared, error: error instanceof Error ? error.message : "The card could not be read." });
     }
   }
 
@@ -355,7 +262,15 @@ export function BcReaderApp() {
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
         <div className="grid gap-5 lg:sticky lg:top-6">
-          {stage.kind !== "review" ? (
+          {batchFiles ? (
+            <BatchReader files={batchFiles} settings={settings} serverGemini={server.gemini} book={book}
+              onSave={(contacts) => {
+                const next = [...contacts, ...book.filter((old) => !contacts.some((contact) => contact.id === old.id))];
+                saveBook(next);
+                setBook(next);
+              }}
+              onClose={() => setBatchFiles(null)} />
+          ) : stage.kind !== "review" ? (
             <section id="read" className="grid gap-4" aria-labelledby="read-heading">
               <div>
                 <h1 id="read-heading" className="font-heading max-w-xl text-4xl leading-tight tracking-tight sm:text-5xl">
@@ -378,7 +293,7 @@ export function BcReaderApp() {
                 onDrop={(event) => {
                   event.preventDefault();
                   setDragging(false);
-                  void takeFile(event.dataTransfer.files[0] ?? null);
+                  takeFiles(event.dataTransfer.files);
                 }}
               >
                 {prepared?.previewUrl ? (
@@ -392,7 +307,7 @@ export function BcReaderApp() {
                   <div className="flex aspect-[1.7/1] flex-col items-center justify-center gap-2 px-6 text-center">
                     <p className="font-heading text-2xl tracking-tight">Lay a card on the plate</p>
                     <p className="max-w-xs text-sm leading-6 text-muted-foreground">
-                      Take a photo, upload one, or drop it here. Keep the whole card in frame.
+                      Upload or drop several photos to read a batch automatically. Use one card per photo.
                     </p>
                   </div>
                 )}
@@ -429,7 +344,7 @@ export function BcReaderApp() {
                   disabled={stage.kind === "reading"}
                 >
                   <Upload />
-                  Upload
+                  Upload photos
                 </Button>
               </div>
               <input
@@ -445,11 +360,12 @@ export function BcReaderApp() {
               />
               <input
                 ref={uploadRef}
+                multiple
                 className="sr-only"
                 type="file"
                 accept="image/*"
                 onChange={(event) => {
-                  void takeFile(event.target.files?.[0] ?? null);
+                  if (event.target.files) takeFiles(event.target.files);
                   event.target.value = "";
                 }}
               />
