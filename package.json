@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test src/lib/parse-text.test.ts src/lib/vcard.test.ts src/lib/phone.test.ts"
+    "test": "node --import tsx --test src/lib/parse-text.test.ts src/lib/vcard.test.ts src/lib/phone.test.ts src/lib/batch.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

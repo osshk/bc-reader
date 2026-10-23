@@ -18,7 +18,23 @@ export async function deliverVCard(vcf: string, filename: string): Promise<Deliv
   // from the server so iOS shows its own contact screen.
   if (isIOS()) {
     const name = filename.replace(/\.vcf$/i, "");
-    window.location.assign(`/api/vcard?n=${encodeURIComponent(name)}&d=${toBase64Url(vcf)}`);
+    // Batch files can exceed URL limits. Submit the data as a navigation POST.
+    if ((vcf.match(/BEGIN:VCARD/g)?.length ?? 0) > 1) {
+      if (toBase64Url(vcf).length > 2_000_000) throw new Error("Select fewer contacts for this import.");
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/api/vcard";
+      for (const [key, value] of Object.entries({ n: name, d: toBase64Url(vcf) })) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
+      form.remove();
+    } else window.location.assign(`/api/vcard?n=${encodeURIComponent(name)}&d=${toBase64Url(vcf)}`);
     return "opened";
   }
   const file = new File([vcf], filename, { type: "text/vcard" });
@@ -50,6 +66,7 @@ export function deliveryMessage(result: Delivery, count: number): string {
     return `${people} went to the share sheet. Choose Contacts to finish filing. Your phone asks before anyone is saved.`;
   }
   if (result === "opened") {
+    if (count > 1) return `Your iPhone should open ${count} contacts. Confirm the import in Contacts to save them.`;
     return "Your iPhone should show the contact card. Tap Create New Contact. In Chrome, tap Open in Contacts first. Nothing is saved until you confirm.";
   }
   if (count > 1) {

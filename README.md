@@ -24,6 +24,14 @@ Open the URL printed by Next.js. `npm test` checks the card parser and the vCard
 
 Without a Gemini key, BC Reader reads the card on the device with Tesseract. That path is private. It sharpens the photo and reads English plus Traditional Chinese. With a key, Gemini reads the photograph.
 
+## Read a batch
+
+Select several photos with **Upload photos**, or drop them together on the plate. Use one card per photo. The queue reads them automatically, one at a time, using the same Gemini/device settings as a single card.
+
+Review the results and use **Edit** to correct any card. Cards without a name cannot be imported; possible duplicates in the book or earlier in the batch start unselected. You can select them explicitly. A failed photo does not stop the batch; **Retry unread cards** retries failures and cards left after stopping.
+
+**Add selected to phone** saves the selected contacts in the browser and sends one multi-contact vCard to the phone. **Save selected in book** keeps them locally without starting an import. Repeating either action updates the same book entries. The phone still asks you to confirm the import. Batch results remain in memory until saved; keep the page open during scanning.
+
 ## Gemini
 
 Create a key in [Google AI Studio](https://aistudio.google.com/apikey).

@@ -67,7 +67,9 @@ export function ReviewForm({
   onSave,
   onAnother,
   onClose,
+  batchReview = false,
 }: {
+  batchReview?: boolean;
   draft: ContactDraft;
   previewUrl: string | null;
   engine: ReadEngine;
@@ -376,6 +378,7 @@ export function ReviewForm({
       ) : null}
 
       <div className="sticky bottom-3 z-10 grid gap-2 rounded-2xl border border-border bg-card/95 p-3 shadow-[0_12px_40px_-24px_rgba(28,25,21,0.7)] backdrop-blur">
+        {batchReview ? <Button type="button" className="h-12" onClick={onClose}>Back to batch</Button> : <>
         <Button type="button" className="h-12 text-base" disabled={!named} onClick={onAdd}>
           <Smartphone />
           Add to phone
@@ -394,6 +397,7 @@ export function ReviewForm({
         <p className="text-center text-xs leading-4 text-muted-foreground">
           iPhone opens a contact card. Android imports a vCard. Both ask you to confirm.
         </p>
+        </> }
       </div>
     </div>
   );
