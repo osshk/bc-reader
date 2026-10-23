@@ -11,8 +11,8 @@ const companies = [
   "一小步教育有限公司",
   "One Small Step 一小步有限公司",
   "環球創意教育科技發展集團有限公司".repeat(5),
-  "A".repeat(56) + "🌏 Education; Hong Kong",
-  "A".repeat(55) + "𠮷野家香港有限公司",
+  "A".repeat(70) + "🌏 Education; Hong Kong",
+  "A".repeat(70) + "𠮷野家香港有限公司",
   "Design \\ Research; Asia, Ltd.",
 ];
 const contacts = companies.map((company, index) => ({

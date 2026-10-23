@@ -51,15 +51,17 @@ function field(name: string, value: string): string | null {
 function oneCard(input: ContactDraft): string {
   const contact = normalizeDraft(input);
   const full = displayName(contact) || "Unknown";
+  // vCard 3.0 text is UTF-8. Legacy 2.1 CHARSET parameters are not valid
+  // here; plain ORG/TITLE also match Android’s own vCard 3.0 exports.
   const lines = [
     "BEGIN:VCARD",
     "VERSION:3.0",
     "PRODID:-//BC Reader//Business Card Reader//EN",
-    fold(`N;CHARSET=UTF-8:${escapeValue(contact.lastName)};${escapeValue(contact.firstName)};;;`),
-    fold(`FN;CHARSET=UTF-8:${escapeValue(full)}`),
-    field("NICKNAME;CHARSET=UTF-8", contact.chineseName),
-    contact.company ? fold(`ORG;CHARSET=UTF-8:${escapeValue(contact.company)}`) : null,
-    field("TITLE;CHARSET=UTF-8", contact.jobTitle),
+    fold(`N:${escapeValue(contact.lastName)};${escapeValue(contact.firstName)};;;`),
+    fold(`FN:${escapeValue(full)}`),
+    field("NICKNAME", contact.chineseName),
+    contact.company ? fold(`ORG:${escapeValue(contact.company)}`) : null,
+    field("TITLE", contact.jobTitle),
     // TEL is not a text value: keep "+" and the comma pause unescaped so both phones dial it.
     ...contact.phones.map((phone) =>
       fold(`TEL;TYPE=${TEL_TYPE[phone.label]}:${phone.number.replace(/[\r\n;]+/g, " ").trim()}`),
@@ -69,9 +71,9 @@ function oneCard(input: ContactDraft): string {
     contact.linkedin ? fold(`X-SOCIALPROFILE;TYPE=linkedin:${escapeValue(contact.linkedin)}`) : null,
     contact.linkedin ? fold(`URL;TYPE=linkedin:${escapeValue(contact.linkedin)}`) : null,
     fold(
-      `ADR;TYPE=WORK;CHARSET=UTF-8:;;${escapeValue(contact.street)};${escapeValue(contact.city)};${escapeValue(contact.region)};${escapeValue(contact.postalCode)};${escapeValue(contact.country)}`,
+      `ADR;TYPE=WORK:;;${escapeValue(contact.street)};${escapeValue(contact.city)};${escapeValue(contact.region)};${escapeValue(contact.postalCode)};${escapeValue(contact.country)}`,
     ),
-    field("NOTE;CHARSET=UTF-8", contact.notes),
+    field("NOTE", contact.notes),
     "END:VCARD",
   ].filter((line): line is string => Boolean(line));
 
